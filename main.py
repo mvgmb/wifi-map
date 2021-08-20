@@ -3,8 +3,6 @@ import csv
 
 import xml.etree.ElementTree as ET
 
-from matplotlib import pyplot
-
 UNKNOWN_VENDOR = 'Unknown'
 BSSID = 'BSSID'
 STATION_MAC = 'Station MAC'
@@ -29,18 +27,27 @@ def get_vendor_name(mac):
 
 vendor_names_count = {}
 unknown_vendor_macs = []
+bssid_set = set()
 with open(airodump_csv_filename, newline='') as csvfile:
     reader = csv.reader(csvfile)
     for row in reader:
         if len(row) > 0 and row[0] != BSSID and row[0] != STATION_MAC:
-            vendor_name = get_vendor_name(row[0])
+            bssid_set.add(row[0])
 
-            if vendor_name == UNKNOWN_VENDOR:
-                unknown_vendor_macs.append(row[0])
+for bssid in bssid_set:
+    vendor_name = get_vendor_name(bssid)
 
-            if vendor_name not in vendor_names_count:
-                vendor_names_count[vendor_name] = 0
-            vendor_names_count[vendor_name] += 1
+    if vendor_name == UNKNOWN_VENDOR:
+        unknown_vendor_macs.append(bssid)
 
-print(vendor_names_count)
-print(unknown_vendor_macs)
+    if vendor_name not in vendor_names_count:
+        vendor_names_count[vendor_name] = 0
+    vendor_names_count[vendor_name] += 1
+
+# print(vendor_names_count)
+# print(unknown_vendor_macs)
+
+del vendor_names_count[UNKNOWN_VENDOR]
+
+for k, v in vendor_names_count.items():
+    print(f'{k}\t{v}')
